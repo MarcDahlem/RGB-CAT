@@ -24,12 +24,13 @@ Here are a few examples:
 * check gamma curves of monitors
 * check gamma curves of televisions
 * check Ambilight Colors
+* check screens for defective pixel
 
 ## Download and installation instructions
 
 1. You need to have Java installed
 2. Download the file of your platform from [jars/](../master/jars/)
-3. Run the tool with your Java installation. If encountering problems please write an github [issue](../../issues)
+3. Run the tool with your Java installation. If encountering problems please write a github [issue](../../issues)
 
 ### Manual installation
 1. Download/clone this repository
@@ -58,4 +59,4 @@ Key(s) | Action
 Click to view
 
 [![help overlay disabled](http://abload.de/img/screenshotuyso8.png)](http://abload.de/img/screenshotuyso8.png)
-[![help overlay enabled](http://abload.de/img/screenshot_help_enablrus72.png)](http://abload.de/img/screenshot_help_enablrus72.png)
+[![help overlay enabled](http://abload.de/img/bildschirmfotovom2014lpu4y.png)](http://abload.de/img/bildschirmfotovom2014lpu4y.png)
