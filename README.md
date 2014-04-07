@@ -28,8 +28,8 @@ Here are a few examples:
 ## Download and installation instructions
 
 1. You need to have Java installed
-2. Download the file of your platform from [jars/]
-3. Run the tool with your Java installation. If encountering problems please write an github [issue](../issues)
+2. Download the file of your platform from [../master/jars/]
+3. Run the tool with your Java installation. If encountering problems please write an github [issue](../../issues)
 
 ### Manual installation
 1. Download/clone this repository
