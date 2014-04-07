@@ -54,3 +54,8 @@ Key(s) | Action
 'b' |                         Set color to constant 'blue' <-> RGB(0,0,255)
 'i','h' or 'F1' |              Show the help
 
+## Screenshots
+Click to view
+
+[![help overlay disabled](http://abload.de/img/screenshotuyso8.png)](http://abload.de/img/screenshotuyso8.png)
+[![help overlay enabled](http://abload.de/img/screenshot_help_enablrus72.png)](http://abload.de/img/screenshot_help_enablrus72.png)
