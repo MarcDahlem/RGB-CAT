@@ -28,7 +28,7 @@ Here are a few examples:
 ## Download and installation instructions
 
 1. You need to have Java installed
-2. Download the file of your platform from [jars/](../../master/jars/)
+2. Download the file of your platform from [jars/](../master/jars/)
 3. Run the tool with your Java installation. If encountering problems please write an github [issue](../../issues)
 
 ### Manual installation
@@ -41,14 +41,16 @@ Here are a few examples:
 
 The tool is controlled via keyboard and reacts to the following mapping:
 
-* 'f':                          Toggle fullscreen
-* 'x','q' or 'ESC':             Close program
-* 'Space' or 'Enter/CR':        Pause/Resume auto incrementing colors
-* '-' / '+':                    Decrease/Increase color update frequency for the auto increment. Value is given in ms
-* 'Down-Arrow' / 'Up-Arrow':    Decrease/Increase the interval for color changes
-* 'Left-Arrow' / 'Right-Arrow': Manually decrease/increase color
-* 'r':                          Set color to constant 'red' <-> RGB(255,0,0)
-* 'g':                          Set color to constant 'green' <-> RGB(0,255,0)
-* 'b':                          Set color to constant 'blue' <-> RGB(0,0,255)
-* 'i','h' or 'F1':              Show the help
+Key(s) | Action
+--- | --- | ---
+'f' |                          Toggle fullscreen
+'x','q' or 'ESC' |             Close program
+'Space' or 'Enter/CR' |        Pause/Resume auto incrementing colors
+'-' / '+' |                    Decrease/Increase color update frequency for the auto increment. Value is given in ms
+'Down-Arrow' / 'Up-Arrow' |    Decrease/Increase the interval for color changes
+'Left-Arrow' / 'Right-Arrow' | Manually decrease/increase color
+'r' |                          Set color to constant 'red' <-> RGB(255,0,0)
+'g' |                         Set color to constant 'green' <-> RGB(0,255,0)
+'b' |                         Set color to constant 'blue' <-> RGB(0,0,255)
+'i','h' or 'F1' |              Show the help
 
