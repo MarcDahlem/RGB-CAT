@@ -50,6 +50,7 @@ Key(s) | Action
 '-' / '+' |                    Decrease/Increase color update frequency for the auto increment. Value is given in ms
 'Down-Arrow' / 'Up-Arrow' |    Decrease/Increase the interval for color changes
 'Left-Arrow' / 'Right-Arrow' | Manually decrease/increase color
+'c' |                           Choose color manually from color picker
 'r' |                          Set color to constant 'red' <-> RGB(255,0,0)
 'g' |                         Set color to constant 'green' <-> RGB(0,255,0)
 'b' |                         Set color to constant 'blue' <-> RGB(0,0,255)
