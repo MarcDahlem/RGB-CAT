@@ -24,12 +24,13 @@ Here are a few examples:
 * check gamma curves of monitors
 * check gamma curves of televisions
 * check Ambilight Colors
+* check screens for defective pixel
 
 ## Download and installation instructions
 
 1. You need to have Java installed
-2. Download the file of your platform from [jars/]
-3. Run the tool with your Java installation. If encountering problems please write an github [issue](../issues)
+2. Download the file of your platform from [jars/](../master/jars/)
+3. Run the tool with your Java installation. If encountering problems please write a github [issue](../../issues)
 
 ### Manual installation
 1. Download/clone this repository
@@ -41,14 +42,21 @@ Here are a few examples:
 
 The tool is controlled via keyboard and reacts to the following mapping:
 
-*'f':\t\t\t\t\t\t\t\tToggle Fullscreen
-*'x','q' or 'ESC':\t\t\t\tClose program
-*'Space' or 'Enter/CR':\t\t\t\tPause/Resume auto increment colors
-*'-' / '+':\t\t\t\t\t\t\tDecrease/Increase Color update frequency for the auto increment. Value is given in ms
-*'Down-Arrow' / 'Up-Arrow':\tDecrease/Increase the interval for color changes
-*'Left-Arrow' / 'Right-Arrow':\tManually decrease/increase color
-*'r':\t\t\t\t\t\t\t\tSet color to constant 'red' <-> RGB(255,0,0)
-*'g':\t\t\t\t\t\t\t\tSet color to constant 'green' <-> RGB(0,255,0)
-*'b':\t\t\t\t\t\t\t\tSet color to constant 'blue' <-> RGB(0,0,255)
-*'i','h' or 'F1':\t\t\t\t\tShow the help
+Key(s) | Action
+--- | --- | ---
+'f' |                          Toggle fullscreen
+'x','q' or 'ESC' |             Close program
+'Space' or 'Enter/CR' |        Pause/Resume auto incrementing colors
+'-' / '+' |                    Decrease/Increase color update frequency for the auto increment. Value is given in ms
+'Down-Arrow' / 'Up-Arrow' |    Decrease/Increase the interval for color changes
+'Left-Arrow' / 'Right-Arrow' | Manually decrease/increase color
+'r' |                          Set color to constant 'red' <-> RGB(255,0,0)
+'g' |                         Set color to constant 'green' <-> RGB(0,255,0)
+'b' |                         Set color to constant 'blue' <-> RGB(0,0,255)
+'i','h' or 'F1' |              Show the help
 
+## Screenshots
+Click to view
+
+[![help overlay disabled](http://abload.de/img/screenshotuyso8.png)](http://abload.de/img/screenshotuyso8.png)
+[![help overlay enabled](http://abload.de/img/bildschirmfotovom2014lpu4y.png)](http://abload.de/img/bildschirmfotovom2014lpu4y.png)
