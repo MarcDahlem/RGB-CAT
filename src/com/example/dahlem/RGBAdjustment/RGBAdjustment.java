@@ -1,26 +1,36 @@
 package com.example.dahlem.RGBAdjustment;
 
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 
 public class RGBAdjustment {
 
@@ -54,7 +64,7 @@ public class RGBAdjustment {
 	 * Minimum for the color update interval
 	 */
 	private static final int INTERVAL_MIN = 1;
-	
+
 	/**
 	 * delay until the info/help window is closed in ms
 	 */
@@ -74,13 +84,20 @@ public class RGBAdjustment {
 	private Label helpLabel;
 	private Timer helpTimer;
 	private Runnable hideHelpRunnable;
-	
+	private ColorDialog colorSelector;
+	private Image fImage;
+	private Color fColor;
+	private Button color_button;
+	private Point colorButtonSizeExtension;
+	private Label colorLabel;
+
 	private static String helpText = "'f':\t\t\t\t\t\t\t\tToggle Fullscreen\n"
 			+ "'x','q' or 'ESC':\t\t\t\tClose program\n"
 			+ "'Space' or 'Enter':\t\t\t\tPause/Resume auto increment colors\n"
 			+ "'-' / '+':\t\t\t\t\t\t\tDecrease/Increase Color update frequency for the auto increment. Value is given in ms\n"
 			+ "'Down-Arrow' / 'Up-Arrow':\tDecrease/Increase the interval for color changes\n"
 			+ "'Left-Arrow' / 'Right-Arrow':\tManually decrease/increase color\n"
+			+ "'c':\t\t\t\t\t\t\t\tOpen color dialog\n"
 			+ "'r':\t\t\t\t\t\t\t\tSet color to constant 'red' <-> RGB(255,0,0)\n"
 			+ "'g':\t\t\t\t\t\t\t\tSet color to constant 'green' <-> RGB(0,255,0)\n"
 			+ "'b':\t\t\t\t\t\t\t\tSet color to constant 'blue' <-> RGB(0,0,255)\n"
@@ -108,7 +125,7 @@ public class RGBAdjustment {
 				RGBAdjustment.this.lastAutoUpdate = System.currentTimeMillis();
 			}
 		};
-		
+
 		this.hideHelpRunnable = new Runnable() {
 
 			@Override
@@ -117,7 +134,7 @@ public class RGBAdjustment {
 					RGBAdjustment.this.helpLabel.setVisible(false);
 				}
 			}
-			
+
 		};
 
 		// create the listener to react on key presses
@@ -213,6 +230,11 @@ public class RGBAdjustment {
 					RGBAdjustment.this.refreshBackground(
 							display.getActiveShell(), r, g, b);
 					break;
+				case 'c':
+					// set color manually. Open color dialog
+					RGBAdjustment.this.color_button.notifyListeners(
+							SWT.Selection, new Event());
+					break;
 
 				case 'i':
 					// show help on i
@@ -232,14 +254,14 @@ public class RGBAdjustment {
 
 	private void showHelp() {
 		this.helpLabel.setVisible(true);
-		if (this.helpTimer!=null) {
+		if (this.helpTimer != null) {
 			this.helpTimer.cancel();
 			this.helpTimer = null;
 		}
-		
-		this.helpTimer=new Timer();
+
+		this.helpTimer = new Timer();
 		this.helpTimer.schedule(new TimerTask() {
-			
+
 			@Override
 			public void run() {
 				display.asyncExec(hideHelpRunnable);
@@ -281,7 +303,8 @@ public class RGBAdjustment {
 		this.intervalLabel.setText("Color update interval: " + interval);
 		// force resize
 		this.intervalLabel.pack();
-		//bugfix: hidden label (right) did overlap and was not resized correctly
+		// bugfix: hidden label (right) did overlap and was not resized
+		// correctly
 		this.intervalLabel.getParent().getParent().layout();
 	}
 
@@ -416,6 +439,77 @@ public class RGBAdjustment {
 				false, false));
 		this.intervalLabel.setText("Color update interval: " + interval);
 
+		final Composite child = new Composite(parent, SWT.NONE);
+		child.setLayout(new GridLayout(2,false));
+		child.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
+		
+		this.colorLabel = new Label(child, SWT.CENTER);
+		colorLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false,
+				false));
+		colorLabel.setText("Select color: ");
+		this.color_button = new Button(child, SWT.PUSH);
+		this.color_button.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false,
+				false));
+		color_button.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				ColorDialog cd = new ColorDialog(child.getShell(), SWT.CENTER);
+				cd.setText("Pick color");
+				cd.setRGB(new RGB(r, g, b));
+				RGB color = cd.open();
+				if (color == null) {
+					return;
+				}
+				RGBAdjustment.this.r = color.red;
+				RGBAdjustment.this.g = color.green;
+				RGBAdjustment.this.b = color.blue;
+				RGBAdjustment.this.refreshBackground(child.getShell(), r, g, b);
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+		this.color_button.addKeyListener(listener_keypress);
+		this.color_button.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void focusGained(FocusEvent e) {
+				// deliver all keyboard events to the shell
+				display.getActiveShell().forceFocus();
+			}
+		});
+		this.colorButtonSizeExtension = computeImageSize(parent,
+				this.color_button);
+		fImage = new Image(display, colorButtonSizeExtension.x,
+				colorButtonSizeExtension.y);
+		GC gc = new GC(fImage);
+		gc.setBackground(this.color_button.getBackground());
+		gc.fillRectangle(0, 0, colorButtonSizeExtension.x,
+				colorButtonSizeExtension.y);
+		gc.dispose();
+		this.color_button.setImage(fImage);
+		this.color_button.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent event) {
+				if (fImage != null) {
+					fImage.dispose();
+					fImage = null;
+				}
+				if (fColor != null) {
+					fColor.dispose();
+					fColor = null;
+				}
+			}
+		});
+
 		// to center the rest add hidden labels at bottom and top
 		hidden_label = new Label(parent, SWT.CENTER);
 		hidden_label.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false,
@@ -423,23 +517,60 @@ public class RGBAdjustment {
 		hidden_label.setVisible(false);
 	}
 
+	/**
+	 * Compute the size of the image to be displayed.
+	 * 
+	 * @param window
+	 *            - the window used to calculate
+	 * @return <code>Point</code>
+	 */
+	private Point computeImageSize(Control window, Button button) {
+		GC gc = new GC(window);
+		Font f = button.getFont();
+		gc.setFont(f);
+		int height = gc.getFontMetrics().getHeight();
+		gc.dispose();
+		Point p = new Point(height * 3 - 6, height);
+		return p;
+	}
+
+	/**
+	 * Update the image being displayed on the button using the current color
+	 * setting.
+	 */
+	protected void updateColorImage(RGB fColorValue) {
+		GC gc = new GC(fImage);
+		gc.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
+		gc.drawRectangle(0, 2, colorButtonSizeExtension.x - 1,
+				colorButtonSizeExtension.y - 4);
+		if (fColor != null) {
+			fColor.dispose();
+		}
+		fColor = new Color(display, fColorValue);
+		gc.setBackground(fColor);
+		gc.fillRectangle(1, 3, colorButtonSizeExtension.x - 2,
+				colorButtonSizeExtension.y - 5);
+		gc.dispose();
+		this.color_button.setImage(fImage);
+	}
+
 	private void configureHelpComposite(Composite parent) {
-		//TODO just a link
+		// TODO just a link
 		GridLayout gridLayout = new GridLayout();
 		parent.setLayout(gridLayout);
 		parent.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true));
-		
+
 		// to center the rest add hidden labels at bottom and top
 		Label hidden_label = new Label(parent, SWT.CENTER);
 		hidden_label.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true,
-				true,2,1));
+				true, 2, 1));
 		hidden_label.setVisible(false);
 
-	    this.helpLabel= new Label(parent, SWT.WRAP);
-	    this.helpLabel.setText(helpText);
-	    this.helpLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true,
+		this.helpLabel = new Label(parent, SWT.WRAP);
+		this.helpLabel.setText(helpText);
+		this.helpLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true,
 				false));
-	    this.helpLabel.setVisible(false);
+		this.helpLabel.setVisible(false);
 
 		// to center the rest add hidden labels at bottom and top
 		hidden_label = new Label(parent, SWT.CENTER);
@@ -523,6 +654,8 @@ public class RGBAdjustment {
 		this.rgb_label.setForeground(color);
 		this.intervalLabel.setForeground(color);
 		this.helpLabel.setForeground(color);
+		this.colorLabel.setForeground(color);
+		this.updateColorImage(new RGB(r, g, b));
 
 		// force to recalculate its sizes
 		this.rgb_label.pack();
