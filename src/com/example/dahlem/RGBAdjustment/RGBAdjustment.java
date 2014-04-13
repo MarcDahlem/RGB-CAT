@@ -2,6 +2,7 @@ package com.example.dahlem.RGBAdjustment;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.swt.SWT;
@@ -73,11 +74,6 @@ public class RGBAdjustment {
 	private volatile int changingRate = 500;
 	private volatile int interval = 25;
 
-	/**
-	 * last time in system millis when the auto update timer was fired. Used to
-	 * calculate remaining timer time
-	 */
-	private volatile long lastAutoUpdate;
 	private Runnable color_updater;
 	private volatile Label updateRateLabel;
 	private volatile Label intervalLabel;
@@ -90,6 +86,9 @@ public class RGBAdjustment {
 	private Button color_button;
 	private Point colorButtonSizeExtension;
 	private Label colorLabel;
+	private boolean onlyGrey;
+	private Button onlyGreyButton;
+	private Label onlyGreyLabel;
 
 	private static String helpText = "'f':\t\t\t\t\t\t\t\tToggle Fullscreen\n"
 			+ "'x','q' or 'ESC':\t\t\t\tClose program\n"
@@ -97,11 +96,22 @@ public class RGBAdjustment {
 			+ "'-' / '+':\t\t\t\t\t\t\tDecrease/Increase Color update frequency for the auto increment. Value is given in ms\n"
 			+ "'Down-Arrow' / 'Up-Arrow':\tDecrease/Increase the interval for color changes\n"
 			+ "'Left-Arrow' / 'Right-Arrow':\tManually decrease/increase color\n"
+			+ "'w':\t\t\t\t\t\t\tToogle black and white mode\n"
 			+ "'c':\t\t\t\t\t\t\t\tOpen color dialog\n"
 			+ "'r':\t\t\t\t\t\t\t\tSet color to constant 'red' <-> RGB(255,0,0)\n"
 			+ "'g':\t\t\t\t\t\t\t\tSet color to constant 'green' <-> RGB(0,255,0)\n"
 			+ "'b':\t\t\t\t\t\t\t\tSet color to constant 'blue' <-> RGB(0,0,255)\n"
 			+ "'i','h' or 'F1':\t\t\t\t\tShow this help";
+	
+	private class MyTimerTask extends TimerTask {
+
+		@Override
+		public void run() {
+			display.asyncExec(color_updater);
+			RGBAdjustment.this.timer.schedule(new MyTimerTask(), RGBAdjustment.this.changingRate);
+		}
+		
+	}
 
 	/**
 	 * The constructur of the Gui initialises listeners and default colors The
@@ -114,6 +124,8 @@ public class RGBAdjustment {
 		this.r = 0;
 		this.g = 0;
 		this.b = 0;
+		
+		LOGGER.setLevel(Level.WARNING);
 
 		this.color_updater = new Runnable() {
 
@@ -122,7 +134,6 @@ public class RGBAdjustment {
 				increaseColor();
 				RGBAdjustment.this.refreshBackground(display.getActiveShell(),
 						r, g, b);
-				RGBAdjustment.this.lastAutoUpdate = System.currentTimeMillis();
 			}
 		};
 
@@ -235,6 +246,10 @@ public class RGBAdjustment {
 					RGBAdjustment.this.color_button.notifyListeners(
 							SWT.Selection, new Event());
 					break;
+				case 'w':
+					// just black and white
+					action_toggle_blackandwhite();
+					break;
 
 				case 'i':
 					// show help on i
@@ -325,26 +340,6 @@ public class RGBAdjustment {
 
 		LOGGER.info("Update rate changed to " + changingRate + " ms");
 
-		// update timer if there was one
-		if (this.timer != null) {
-			this.timer.cancel();
-			long currentTime = System.currentTimeMillis();
-			long timedifference = currentTime - this.lastAutoUpdate;
-			// at maximum changingrate
-			timedifference = timedifference > changingRate ? changingRate
-					: timedifference;
-			this.timer = new Timer();
-			timer.scheduleAtFixedRate(new TimerTask() {
-
-				@Override
-				public void run() {
-					display.asyncExec(color_updater);
-				}
-			}, timedifference, changingRate);
-			LOGGER.info("Restarting auto increment with delay of "
-					+ timedifference + " ms");
-		}
-
 		// update updaterate label
 		this.updateRateLabel.setText("Update rate: " + changingRate + " ms");
 		// force resize
@@ -355,15 +350,7 @@ public class RGBAdjustment {
 	protected void startTimer() {
 		if (this.timer == null) {
 			this.timer = new Timer();
-			timer.scheduleAtFixedRate(new TimerTask() {
-
-				@Override
-				public void run() {
-					display.asyncExec(color_updater);
-
-				}
-			}, changingRate, changingRate);
-			this.lastAutoUpdate = System.currentTimeMillis();
+			timer.schedule(new MyTimerTask(), changingRate);
 			LOGGER.info("Starting auto increment");
 		}
 	}
@@ -440,16 +427,16 @@ public class RGBAdjustment {
 		this.intervalLabel.setText("Color update interval: " + interval);
 
 		final Composite child = new Composite(parent, SWT.NONE);
-		child.setLayout(new GridLayout(2,false));
+		child.setLayout(new GridLayout(2, false));
 		child.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
-		
+
 		this.colorLabel = new Label(child, SWT.CENTER);
 		colorLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false,
 				false));
 		colorLabel.setText("Select color: ");
 		this.color_button = new Button(child, SWT.PUSH);
-		this.color_button.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false,
-				false));
+		this.color_button.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER,
+				false, false));
 		color_button.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -487,7 +474,7 @@ public class RGBAdjustment {
 				display.getActiveShell().forceFocus();
 			}
 		});
-		this.colorButtonSizeExtension = computeImageSize(parent,
+		this.colorButtonSizeExtension = computeImageSize(child,
 				this.color_button);
 		fImage = new Image(display, colorButtonSizeExtension.x,
 				colorButtonSizeExtension.y);
@@ -509,7 +496,47 @@ public class RGBAdjustment {
 				}
 			}
 		});
+		
+		final Composite child2 = new Composite(parent, SWT.NONE);
+		child2.setLayout(new GridLayout(2, false));
+		child2.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
+		
+		this.onlyGreyLabel = new Label(child2, SWT.CENTER);
+		onlyGreyLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false,
+				false));
+		onlyGreyLabel.setText("Only black and white:");
+		
 
+		this.onlyGreyButton = new Button(child2, SWT.CHECK);
+		this.onlyGreyButton.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER,false,false));
+		this.onlyGreyButton.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				action_toggle_blackandwhite();
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+
+		onlyGreyButton.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void focusGained(FocusEvent e) {
+				// deliver all keyboard events to the shell
+				display.getActiveShell().forceFocus();
+			}
+		});
 		// to center the rest add hidden labels at bottom and top
 		hidden_label = new Label(parent, SWT.CENTER);
 		hidden_label.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false,
@@ -655,6 +682,7 @@ public class RGBAdjustment {
 		this.intervalLabel.setForeground(color);
 		this.helpLabel.setForeground(color);
 		this.colorLabel.setForeground(color);
+		this.onlyGreyLabel.setForeground(color);
 		this.updateColorImage(new RGB(r, g, b));
 
 		// force to recalculate its sizes
@@ -731,54 +759,116 @@ public class RGBAdjustment {
 	}
 
 	private void increaseColor() {
-		if (RGBAdjustment.this.b < 255) {
-			RGBAdjustment.this.b += interval;
-			RGBAdjustment.this.b = RGBAdjustment.this.b > 255 ? 255
-					: RGBAdjustment.this.b;
-		} else {
-			if (RGBAdjustment.this.g < 255) {
+
+		if (this.onlyGrey) {
+			if (r != g || g != b || r != b) {
+				throw new IllegalArgumentException(
+						"Color values must be the same if only grey is updated");
+			}
+			if (r == 255) {
+				r = 0;
+				b = 0;
+				g = 0;
+			} else {
+				RGBAdjustment.this.r += interval;
 				RGBAdjustment.this.g += interval;
+				RGBAdjustment.this.b += interval;
+				RGBAdjustment.this.r = RGBAdjustment.this.r > 255 ? 255
+						: RGBAdjustment.this.r;
 				RGBAdjustment.this.g = RGBAdjustment.this.g > 255 ? 255
 						: RGBAdjustment.this.g;
-				RGBAdjustment.this.b = 0;
+				RGBAdjustment.this.b = RGBAdjustment.this.b > 255 ? 255
+						: RGBAdjustment.this.b;
+			}
+
+		} else {
+			if (RGBAdjustment.this.b < 255) {
+				RGBAdjustment.this.b += interval;
+				RGBAdjustment.this.b = RGBAdjustment.this.b > 255 ? 255
+						: RGBAdjustment.this.b;
 			} else {
-				if (RGBAdjustment.this.r < 255) {
-					RGBAdjustment.this.r += interval;
-					RGBAdjustment.this.r = RGBAdjustment.this.r > 255 ? 255
-							: RGBAdjustment.this.r;
-					RGBAdjustment.this.g = 0;
-				} else {
-					RGBAdjustment.this.r = 0;
-					RGBAdjustment.this.g = 0;
+				if (RGBAdjustment.this.g < 255) {
+					RGBAdjustment.this.g += interval;
+					RGBAdjustment.this.g = RGBAdjustment.this.g > 255 ? 255
+							: RGBAdjustment.this.g;
 					RGBAdjustment.this.b = 0;
+				} else {
+					if (RGBAdjustment.this.r < 255) {
+						RGBAdjustment.this.r += interval;
+						RGBAdjustment.this.r = RGBAdjustment.this.r > 255 ? 255
+								: RGBAdjustment.this.r;
+						RGBAdjustment.this.g = 0;
+					} else {
+						RGBAdjustment.this.r = 0;
+						RGBAdjustment.this.g = 0;
+						RGBAdjustment.this.b = 0;
+					}
 				}
 			}
 		}
 	}
 
 	private void decreaseColor() {
-		if (RGBAdjustment.this.b > 0) {
-			RGBAdjustment.this.b -= interval;
-			RGBAdjustment.this.b = RGBAdjustment.this.b < 0 ? 0
-					: RGBAdjustment.this.b;
-		} else {
-			if (RGBAdjustment.this.g > 0) {
+		if (this.onlyGrey) {
+			if (r != g || r != b || g != b) {
+				throw new IllegalArgumentException(
+						"Color values must be the same if only grey is updated");
+			}
+			if (r == 0) {
+				r = 255;
+				g = 255;
+				b = 255;
+			} else {
+				RGBAdjustment.this.r -= interval;
 				RGBAdjustment.this.g -= interval;
+				RGBAdjustment.this.b -= interval;
+				RGBAdjustment.this.r = RGBAdjustment.this.r < 0 ? 0
+						: RGBAdjustment.this.r;
 				RGBAdjustment.this.g = RGBAdjustment.this.g < 0 ? 0
 						: RGBAdjustment.this.g;
-				RGBAdjustment.this.b = 255;
+				RGBAdjustment.this.b = RGBAdjustment.this.b < 0 ? 0
+						: RGBAdjustment.this.b;
+			}
+		} else {
+			if (RGBAdjustment.this.b > 0) {
+				RGBAdjustment.this.b -= interval;
+				RGBAdjustment.this.b = RGBAdjustment.this.b < 0 ? 0
+						: RGBAdjustment.this.b;
 			} else {
-				if (RGBAdjustment.this.r > 0) {
-					RGBAdjustment.this.r -= interval;
-					RGBAdjustment.this.r = RGBAdjustment.this.r < 0 ? 0
-							: RGBAdjustment.this.r;
-					RGBAdjustment.this.g = 255;
-				} else {
-					RGBAdjustment.this.r = 255;
-					RGBAdjustment.this.g = 255;
+				if (RGBAdjustment.this.g > 0) {
+					RGBAdjustment.this.g -= interval;
+					RGBAdjustment.this.g = RGBAdjustment.this.g < 0 ? 0
+							: RGBAdjustment.this.g;
 					RGBAdjustment.this.b = 255;
+				} else {
+					if (RGBAdjustment.this.r > 0) {
+						RGBAdjustment.this.r -= interval;
+						RGBAdjustment.this.r = RGBAdjustment.this.r < 0 ? 0
+								: RGBAdjustment.this.r;
+						RGBAdjustment.this.g = 255;
+					} else {
+						RGBAdjustment.this.r = 255;
+						RGBAdjustment.this.g = 255;
+						RGBAdjustment.this.b = 255;
+					}
 				}
 			}
+		}
+	}
+
+	private void action_toggle_blackandwhite() {
+		if (!onlyGrey) {
+			int min = Math.min(r, Math.min(g, b));
+			r = min;
+			g = min;
+			b = min;
+			RGBAdjustment.this.onlyGrey = true;
+			RGBAdjustment.this.refreshBackground(
+					display.getActiveShell(), r, g, b);
+			onlyGreyButton.setSelection(true);
+		} else {
+			RGBAdjustment.this.onlyGrey = false;
+			onlyGreyButton.setSelection(false);
 		}
 	}
 
