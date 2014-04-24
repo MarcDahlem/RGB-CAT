@@ -71,8 +71,8 @@ public class RGBAdjustment {
 	 */
 	private static final int CLOSE_INFO_DELAY = 5000;
 
-	private volatile int changingRate = 500;
-	private volatile int interval = 25;
+	private volatile int changingRate = 50;
+	private volatile int interval = 5;
 
 	private Runnable color_updater;
 	private volatile Label updateRateLabel;
@@ -108,7 +108,9 @@ public class RGBAdjustment {
 		@Override
 		public void run() {
 			display.asyncExec(color_updater);
-			RGBAdjustment.this.timer.schedule(new MyTimerTask(), RGBAdjustment.this.changingRate);
+			if (RGBAdjustment.this.timer != null) {
+				RGBAdjustment.this.timer.schedule(new MyTimerTask(), RGBAdjustment.this.changingRate);
+			}
 		}
 		
 	}
@@ -131,9 +133,11 @@ public class RGBAdjustment {
 
 			@Override
 			public void run() {
+				if (RGBAdjustment.this.timer != null) {
 				increaseColor();
 				RGBAdjustment.this.refreshBackground(display.getActiveShell(),
 						r, g, b);
+				}
 			}
 		};
 
@@ -731,7 +735,6 @@ public class RGBAdjustment {
 		if (this.timer != null) {
 			timer.cancel();
 			this.timer = null;
-			timer = null;
 			LOGGER.info("Stopping auto increment");
 		}
 	}
